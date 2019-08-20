@@ -13,9 +13,9 @@ app.use(cors());
 //route for location
 app.get('/location', (request, response) => {
     try{
-        superagent.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${request.query.location}&key=${process.env.GEOCODEAPI_KEY}`)
+        superagent.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${request.query.data}&key=${process.env.GEOCODEAPI_KEY}`)
         .then((geoData) => {
-            const location = new Location(request.query.location, geoData.body);
+            const location = new Location(request.query.data, geoData.body);
             response.send(location);
         });
         
