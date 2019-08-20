@@ -23,6 +23,7 @@ app.get('/location', (request, response) => {
 
 //route for weather
 app.get('/weather', (request, response) => {
+try{
     const darkData = require('./darkysky.json');
 
     let weatherResults = []
@@ -34,6 +35,9 @@ app.get('/weather', (request, response) => {
     });
 //return results
     response.send(weatherResults);
+} catch(error){
+    response.status(500).send("Sorry! Something went wrong.")
+}
 });
 
 //location contstructor
@@ -50,7 +54,7 @@ function Weather(darkData){
     let rawTime = darkData.time;
     this.forecast = darkData.summary;
 //use built in Date constructor. This example is odd because it has time in seconds.
-//(0, 15): first and last characters
+//(0, 15): first and last characters 
     this.time = new Date (rawTime * 1000).toString().slice(0,15);
 };
 
