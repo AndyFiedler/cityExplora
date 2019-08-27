@@ -1,28 +1,41 @@
+'use strict';
+
+// Load Environment Variables from the .env file
+require('dotenv').config();
+
+
+// Application Dependencies
 const express =require('express');
 const cors = require('cors');
-require('dotenv').config();
+
+
+
+// Application Setup
 const superagent = require('superagent');
-
-const app =express();
-app.use(cors());
-
-//localhost:3000/location?location=Blah
+const PORT = process.env.PORT || 3000
+app.listen(PORT, () => {
+    console.log('server is listening');
+});
 
 
 //api routes
+const app = express();
+app.use(cors());
+
+
+// API Routes
+
 //route for location
 app.get('/location', (request, response) => {
-    try{
-        superagent.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${request.query.data}&key=${process.env.GEOCODEAPI_KEY}`)
-        .then((geoData) => {
-            const location = new Location(request.query.data, geoData.body);
-            response.send(location);
-        });
-        
-    } catch(error){
-        response.status(500).send("Sorry! Something went wrong.")
-    }
-    
+    // this is a try catch to see if we can get location data
+    try {
+        const locationData = searchToLatLong(request.query.data);
+        response.send(locationData);
+      }
+      catch(error) {
+        console.error(error);
+        response.status(500).send('Status: 500. So sorry, something went wrong.');
+      }
 });
 
 app.get('/weather', getWeather);
@@ -41,7 +54,6 @@ try{
 
 //fills weatherResults array 
     darkData.daily.data.forEach(day => {
-//
         weatherResults.push(new Weather(day));
     });
 //return results
@@ -52,18 +64,18 @@ try{
 });
 
 //location contstructor
-function Location(query, geoData){
+function Location(query, res){
     this.search_query = query,
     this.formatted_query = geoData.results[0].formatted_address;
     this.latitude = geoData.results[0].geometry.location.lat;
     this.longitude = geoData.results[0].geometry.location.lng;
-    
 }
 //weather constructor/////////////////////
 function Weather(day) {
     this.forecast = day.summary;
     this.time = new Date(day.time * 1000).toString().slice(0, 15);
   };
+
 
 //event constructor/////////////////////
   function Event(event) {
@@ -117,4 +129,7 @@ const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
     console.log('server is listening');
 });
+
+
+//app.listen is on ln 17
 
