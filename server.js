@@ -44,7 +44,6 @@ try{
 
 //fills weatherResults array 
     darkData.daily.data.forEach(day => {
-//
         weatherResults.push(new Weather(day));
     });
 //return results
@@ -55,12 +54,11 @@ try{
 });
 
 //location contstructor
-function Location(query, geoData){
+function Location(query, res){
     this.search_query = query,
     this.formatted_query = geoData.results[0].formatted_address;
     this.latitude = geoData.results[0].geometry.location.lat;
     this.longitude = geoData.results[0].geometry.location.lng;
-    
 }
 //weather contruction
 function Weather(darkData){
@@ -72,4 +70,4 @@ function Weather(darkData){
     this.time = new Date (rawTime * 1000).toString().slice(0,15);
 };
 
-
+//app.listen is on ln 17
