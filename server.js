@@ -1,28 +1,38 @@
+'use strict';
+
+// Load Environment Variables from the .env file
+require('dotenv').config();
+
+
+// Application Dependencies
 const express =require('express');
 const cors = require('cors');
-require('dotenv').config();
-const superagent = require('superagent');
 
-const app =express();
+
+
+// Application Setup
+const superagent = require('superagent');
+const PORT = process.env.PORT || 3000
+app.listen(PORT, () => {
+    console.log('server is listening');
+});
+
+const app = express();
 app.use(cors());
 
-//localhost:3000/location?location=Blah
 
-
-
+// API Routes
 //route for location
 app.get('/location', (request, response) => {
-    try{
-        superagent.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${request.query.data}&key=${process.env.GEOCODEAPI_KEY}`)
-        .then((geoData) => {
-            const location = new Location(request.query.data, geoData.body);
-            response.send(location);
-        });
-        
-    } catch(error){
-        response.status(500).send("Sorry! Something went wrong.")
-    }
-    
+    // this is a try catch to see if we can get location data
+    try {
+        const locationData = searchToLatLong(request.query.data);
+        response.send(locationData);
+      }
+      catch(error) {
+        console.error(error);
+        response.status(500).send('Status: 500. So sorry, something went wrong.');
+      }
 });
 
 //route for weather
@@ -62,8 +72,4 @@ function Weather(darkData){
     this.time = new Date (rawTime * 1000).toString().slice(0,15);
 };
 
-const PORT = process.env.PORT || 3000
-app.listen(PORT, () => {
-    console.log('server is listening');
-});
 
