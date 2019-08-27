@@ -17,11 +17,14 @@ app.listen(PORT, () => {
     console.log('server is listening');
 });
 
+
+//api routes
 const app = express();
 app.use(cors());
 
 
 // API Routes
+
 //route for location
 app.get('/location', (request, response) => {
     // this is a try catch to see if we can get location data
@@ -34,6 +37,13 @@ app.get('/location', (request, response) => {
         response.status(500).send('Status: 500. So sorry, something went wrong.');
       }
 });
+
+app.get('/weather', getWeather);
+app.get('/events', getEvents);
+
+//is this different than line 72-74 functionally? V
+app.listen(PORT, () => console.log(`Listening on ${PORT}`));
+
 
 //route for weather
 app.get('/weather', (request, response) => {
@@ -60,14 +70,66 @@ function Location(query, res){
     this.latitude = geoData.results[0].geometry.location.lat;
     this.longitude = geoData.results[0].geometry.location.lng;
 }
-//weather contruction
-function Weather(darkData){
-//unformatted day in seconds
-    let rawTime = darkData.time;
-    this.forecast = darkData.summary;
-//use built in Date constructor. This example is odd because it has time in seconds.
-//(0, 15): first and last characters 
-    this.time = new Date (rawTime * 1000).toString().slice(0,15);
-};
+//weather constructor/////////////////////
+function Weather(day) {
+    this.forecast = day.summary;
+    this.time = new Date(day.time * 1000).toString().slice(0, 15);
+  };
+
+
+//event constructor/////////////////////
+  function Event(event) {
+    this.link = event.url;
+    this.name = event.name.text;
+    this.event_date = new Date(event.start.local).toString().slice(0, 15);
+    this.summary = event.summary;
+  };
+
+  function searchToLatLong(query) {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${process.env.GEOCODE_API_KEY}`;
+  
+    return superagent.get(url)
+      .then(res => {
+        return new Location(query, res);
+      })
+      .catch(error => handleError(error));
+  };
+  //fleshes out getWeather function in app.get(ln28) so it will get weather data from API on searched location. adds all relevent(that i specified) info to a new array with .map
+  function getWeather(request, response) {
+    const url = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${request.query.data.latitude},${request.query.data.longitude}`;
+  
+    superagent.get(url)
+      .then(result => {
+        const weatherSummaries = result.body.daily.data.map(day => {
+          return new Weather(day);
+        });
+  
+        response.send(weatherSummaries);
+      })
+      .catch(error => handleError(error, response));
+  };
+
+  //fleshes out getEvents function(ln29) so it gets events for searched location from api and where the event is located within that location. adds all of the info to an array and sends to page
+  function getEvents(request, response) {
+    const url = `https://www.eventbriteapi.com/v3/events/search?token=${process.env.EVENTBRITE_API_KEY}&location.address=${request.query.data.formatted_query}`;
+  
+    superagent.get(url)
+      .then(result => {
+        const events = result.body.events.map(eventData => {
+          const event = new Event(eventData);
+          return event;
+        });
+  
+        response.send(events);
+      })
+      .catch(error => handleError(error, response));
+  }
+  //lets me know if server is on and working
+const PORT = process.env.PORT || 3000
+app.listen(PORT, () => {
+    console.log('server is listening');
+});
+
 
 //app.listen is on ln 17
+
